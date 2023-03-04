@@ -1,0 +1,27 @@
+(1) Option Explicit ‘强制对模块内所有变量进行声明
+
+(2) Option Base 1 ‘指定数组的第一个下标为1
+
+(3) On Error Resume Next ‘忽略错误继续执行VBA代码,避免出现错误消息
+
+(4) On Error GoTo 100 ‘当错误发生时跳转到过程中的某个位置
+
+(5) On Error GoTo 0 ‘恢复正常的错误提示
+
+(6) Application.DisplayAlerts=False ‘在程序执行过程中使出现的警告框不显示
+
+(7) Application.DisplayAlerts=True ‘在程序执行过程中恢复显示警告框
+
+(8) Application.ScreenUpdating=False ‘关闭屏幕刷新
+
+(9) Application.ScreenUpdating = True ‘打开屏幕刷新
+
+(10)  Workbooks.Add() ‘创建一个新的工作簿
+
+(11)  Workbooks(“book1.xls”).Activate ‘激活名为book1的工作簿
+
+(12) ThisWorkbook.Save ‘保存工作簿
+
+(13) ThisWorkbook.close ‘关闭当前工作簿
+
+(14)  ActiveWorkbook.Sheets.Count ‘获取活动工作薄中工作表数
