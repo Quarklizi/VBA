@@ -1,0 +1,37 @@
+Attribute VB_Name = "Basic"
+Option Explicit
+Sub Generate_Content_General()
+Application.ScreenUpdating = False
+'第一部分：声明基础变量
+Dim sht As Worksheet
+Dim sht_content As Worksheet
+Dim wk As Workbook
+Set wk = ThisWorkbook
+Set sht_content = wk.Sheets("目录")
+With sht_content.Cells(2, 2)
+    .Value = "目录"
+    .Offset(0, 1) = "超链接"
+End With
+'第二部分：超链接
+Dim i, j, k
+Dim zstr, ystr, xstr
+j = 2
+i = 2
+Do While i < wk.Sheets.Count
+    Set sht = wk.Sheets(i)
+    If sht.Name <> "目录" And sht.Visible = -1 Then
+        With sht_content.Cells(j + 1, 2)
+            .Value = sht.Name
+            sht_content.Hyperlinks.Add .Offset(0, 1), Address:="", SubAddress:="'" & sht.Name & "'!a1", TextToDisplay:="点击链接表"
+            '逆向链接过程
+            j = j + 1
+        End With
+    End If
+    i = i + 1
+Loop
+With sht_content.Range("b:c")
+    .Columns.AutoFit
+    .Font.Size = 12
+End With
+Application.ScreenUpdating = True
+End Sub
