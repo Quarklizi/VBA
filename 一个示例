@@ -1,0 +1,13 @@
+Sub 
+示例
+_1_01()
+    Dim myNum1%, myNum2%
+    myNum1 = Asc("Excel")  '
+返回
+69
+    myNum2 = Asc("e")  '
+返回
+101
+    [a1] = "myNum1= ": [b1] = myNum1
+    [a2] = "myNum2= ": [b2] = myNum2
+End Sub      
