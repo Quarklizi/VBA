@@ -1,0 +1,22 @@
+False
+ 
+  '**引用打开窗口
+  Dim fd As FileDialog
+  Dim vrtSelectedItem As Variant
+ 
+  Set fd = Application.FileDialog(msoFileDialogOpen)
+  fd.InitialFileName = Sheets('设置').Range('CU7').Value & '\库存核对' '默认打开的文件夹
+  With fd
+    .AllowMultiSelect = True '可选多个文件
+    If .Show = -1 Then
+      For Each vrtSelectedItem In .SelectedItems
+        FJ = Split(vrtSelectedItem, '\')
+        ThisWorkbook.Sheets('设置').Range(CR).Value = FJ(3) '记录文件名
+        ThisWorkbook.Sheets('设置').Range('AG1').Value = FJ(3) '记录文件名
+        fd.Execute '执行打开
+        Me.CommandButton62.Enabled = True
+        Exit For
+      Next
+    End If
+  End With
+  Set fd = Nothing
