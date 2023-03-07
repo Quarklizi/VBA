@@ -1,0 +1,15 @@
+VBA中的完全匹配查找
+
+Sub MyNZ()
+
+i = 2
+
+TT = Cells(i, 1)
+
+Set FJX = Sheets("X").Range("A1:A" & Sheets("A").Range("A1").End(xlDown).Row).Find(TT, LookAt:=xlWhole)
+
+Set FJX = Nothing
+
+End Sub
+
+代码的解析说明：上述代码的过程将在工作表“X”中A列第一个单元格到不为空的最后一个单元格中查找TT，TT是指定的一个单元格的值Cells(i, 1)，其中LookAt:=xlWhole是指完全匹配查找。
