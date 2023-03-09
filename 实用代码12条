@@ -1,0 +1,39 @@
+1 有内容的最行一行、列
+
+lr = Range("A" & Cells.Rows.Count).End(xlUp).Row + 1lc = Range(Cells(1, Columns.Count), Cells(1, Columns.Count)).End(xlToLeft).Column + 1
+2 数组填充
+
+[E1:F1] = Array("产品名称", "数量") '填充表头ActiveSheet.Range("A3:B3") = Array("外部库名称", "描述", "文件位置") '填充表头
+3 字符串处理函数
+
+s1 = Len(s) 求长度s1 = Trim(s) 去两边空格s1 = Replace(s,a,b) 替换字符串s1 = LCase(s) 小写字符串s1 = UCase(s) 大写字符串s1 = Left(s,n) 从左边取出n个字符s1 = Right(s,n) 从右边取出n个字符s1 = Mid(s,i,n) 从s的第i个字符开始取出n个字符s1 = Instr(s,a) 查找字符串a的位置s1 = Instr(i,s,a) 从第i个字符开始寻找a，返回a首字母的位置
+4 单元格操作
+
+合并单元格 Range.Merge拆分单元格 Range.UnMerge清除内容 Range.ClearContents清除格式 Range.ClearFormats内容格式全部清除 Range.Clear修改字号 Range.Font.Size修改颜色Range.Font.Color = RGB(255,0,0)修改字颜色Range.Interior.Color = RGB（255，255，0）
+5 引用方式A1和R1C1转换
+
+'A1转R1C1：function TransferFromat(byval rangeAdd as string) as string     dim str as string     str =Application.ConvertFormula(rangeAdd , xlA1, xlR1C1)    TransferFromat=str end function'R1C1转A1：function TransferFromat(byval rangeAdd as string) as string     dim str as string     str =Application.ConvertFormula(rangeAdd ,xlR1C1, xlA1 )    TransferFromat=str end functionApplication.ReferenceStyle = xlA1Application.ReferenceStyle = xlR1C1
+6 清除密码保护
+
+Sub clearPassWord()    Dim wkb As Workbook    For Each wkb In Workbooks        If wkb.HasPassword Then            wkb.Password = ""        End If    Next wkbEnd Sub
+7 空表判断
+
+    If Application.WorksheetFunction.CountA(Cells) <> 0 Then        MsgBox "活动工作表中包含数据，请选择一个空工作表！"        Exit Sub    End If
+8 定时运行程序
+
+Sub ontime()    dNextTime = DateAdd("s", 5, Now)  '5 second    Application.ontime dNextTime, "proc"End SubSub proc()    Debug.Print 1314End Sub
+9 Read a file
+
+Const ForReading = 1Const ForWriting = 2Const ForAppending = 8Sub ReadTextFileExample()    Dim fso As Object    Set fso = CreateObject("Scripting.FileSystemObject")    Dim sourceFile As Object    Dim myFilePath As String    Dim myFileText As String    myFilePath = "C:\mypath\to\myfile.txt"    GoalKicker.com – VBA Notes for Professionals 96    Set sourceFile = fso.OpenTextFile(myFilePath, ForReading)    myFileText = sourceFile.ReadAll ' myFileText now contains the content of the text file    sourceFile.Close ' close the file    ' do whatever you might need to do with the text    ' You can also read it line by line    Dim line As String    Set sourceFile = fso.OpenTextFile(myFilePath, ForReading)    While Not sourceFile.AtEndOfStream ' while we are not finished reading through the file        line = sourceFile.ReadLine        ' do something with the line...    Wend    sourceFile.CloseEnd Sub
+10 Creating and write a text file
+
+Sub CreateTextFileExample()    Dim fso As Object    Set fso = CreateObject("Scripting.FileSystemObject")    Dim targetFile As Object    Dim myFilePath As String    Dim myFileText As String    myFilePath = "C:\mypath\to\myfile.txt"    Set targetFile = fso.CreateTextFile(myFilePath, True) ' this will overwrite any existing file    targetFile.Write "This is some new text"    targetFile.Write " And this text will appear right after the first bit of text."    targetFile.WriteLine "This bit of text includes a newline character to ensure each write takes its own line."    targetFile.Close ' close the fileEnd Sub
+11 设置条件格式
+
+Sub 设置条件格式()    Dim rng1 As Range    Set rng1 = Sheet1.Range("C2:E6")    '添加条件格式，成绩大于或等于90 的格式    With rng1.FormatConditions.Add(Type:=xlCellValue, _        Operator:=xlGreaterEqual, Formula1:=90)        With .Borders            .LineStyle = xlContinuous            .Weight = xlThin            .ColorIndex = 6        End With        With .Font            .Bold = True            第4 章 Range 对象操作技巧 105            .ColorIndex = 3        End With    End With    '添加条件格式，成绩小于60 的格式    With rng1.FormatConditions.Add(Type:=xlCellValue, _        Operator:=xlLess, Formula1:=60)        With .Font            .Bold = True            .ColorIndex = 10        End With    End WithEnd Sub
+12 清除条件格式
+
+Sub 清除条件格式()    Cells.FormatConditions.DeleteEnd Sub
+13 排序工作表
+
+Sub 排序工作表()    Dim i As Long, j As Long    For i = 1 To Worksheets.Count        For j = 1 To Worksheets.Count - 1            If UCase$(Worksheets(j).Name) > UCase$(Worksheets(j + 1).Name) Then                Worksheets(j).Move After:=Worksheets(j + 1)            End If        Next j    Next iEnd Sub
