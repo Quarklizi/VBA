@@ -1,0 +1,9 @@
+单条件判断
+Sub 判断1()If Range("A1").value > 0 ThenRange("B1") = "正数"ElseRange("B1") = "负数"End IF
+End Sub多条件判断
+Sub 判断1()If Range("A1").value > 0 ThenRange("B1") = "正数"ElseIf Range("A1").value = 0 ThenRange("B1") = "0"ElseRange("B1") = "负数"End IF
+End Sub多条件判断
+Sub 判断1()If Range("A1") <> "" And Range("A2") <> "" ThenRange("B1") = Range("A1")*And Range("A2")End IF
+End Sub单语句判断
+Sub 判断1()Range("B1").value = IIf（Range("A1") <= 0, "负数或0", "正数")
+End Sub
