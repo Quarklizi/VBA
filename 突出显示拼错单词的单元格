@@ -1,0 +1,4 @@
+Excel没有像在Word或PowerPoint中那样进行拼写检查。虽然可以按F7键进行拼写检查，但当出现拼写错误时，没有视觉提示。
+使用此代码可以立即突出显示其中有拼写错误的所有单元格。
+Sub HighlightMisspelledCells() Dim cl As Range For Each cl In ActiveSheet.UsedRange If Not Application.CheckSpelling(word:=cl.Text) Then cl.Interior.Color = vbRed End If Next cl End Sub
+请注意，突出显示的单元格包含Excel认为是拼写错误的文本。当然在许多情况下，它也会其它各种错误。
