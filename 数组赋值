@@ -1,0 +1,9 @@
+Dim arr(5) As String
+
+For i = 1 to 5
+     '赋值
+     arr(i) = i
+Next
+
+'取值
+Debug.Print arr(1)
