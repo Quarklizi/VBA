@@ -1,0 +1,202 @@
+Attribute VB_Name = "Generate_Chart"
+Option Explicit
+​
+'=======================================下面为VBA自动生成部分=======================================
+Sub Chart_Initial(C_row As Integer, C_column As Integer, ChartName As String, C_width As Integer, C_height)
+​
+'C_row,C_Column 存放行列位置,ChartName 存放表,C_width C_height 存放大小
+​
+Dim XTitle, YTitle
+Dim Crng As Range, Xrng As Range, rng As Range
+Dim sht As Worksheet, wb1 As Workbook
+Dim MyChart As ChartObject
+Dim R1, C, zstr
+​
+Set wb1 = ThisWorkbook
+Set sht = wb1.Sheets("ChartData")
+​
+R1 = sht.ChartObjects.Count
+​
+If R1 > 0 Then
+        For Each C In sht.ChartObjects
+            zstr = C.Name
+            If zstr = ChartName Then C.Delete
+        Next
+End If
+​
+'第一部分：创建一个新的图表Object事件
+Set rng = sht.Cells(C_row, C_column)
+Set MyChart = sht.ChartObjects.Add(rng.Left, rng.Offset(1, 0).Top, rng.Width * C_width, rng.Height * C_height)
+With MyChart
+        .Name = ChartName
+End With
+​
+'第二部分：设置图表区格式
+With MyChart.chart.ChartArea
+        .Font.Name = "宋体"
+        .Font.Size = 8
+        .Font.ColorIndex = xlAutomatic
+        .Border.LineStyle = 0
+        .Interior.ColorIndex = xlAutomatic  '图表区填充
+End With
+​
+'第三部分：设置绘图区格式
+With MyChart.chart.PlotArea
+        .Border.ColorIndex = 15
+        .Border.Weight = xlThin
+'        .Border.LineStyle = xlDot
+        .Border.LineStyle = xlDot
+        .Interior.ColorIndex = xlNone   '绘图区填充
+End With
+​
+'第五部分：设置图表标题
+MyChart.chart.HasTitle = True
+With MyChart.chart.ChartTitle
+        .Text = "<p>string</p>"
+        .Font.Name = "宋体"
+        .Font.Bold = True
+        .Font.Size = 9
+        .Top = 0
+End With
+​
+End Sub
+​
+Sub Chart_FillData(MyChart As ChartObject, SerieName As String, Xrng As Range, Yrng As Range)
+​
+With MyChart.chart
+        Dim ns
+        Set ns = .SeriesCollection.NewSeries
+        ns.Values = Xrng
+        If Not Yrng Is Nothing Then ns.XValues = Yrng
+        ns.Name = SerieName
+End With
+End Sub
+​
+Sub Chart_FinalStyle(MyChart As ChartObject)
+​
+With MyChart.chart
+'        .ChartTitle.Left = (myChart.Chart.ChartArea.Width / 2) - (myChart.Chart.ChartTitle.Width / 2)
+End With
+​
+End Sub
+​
+Sub Chart_Axes(MyChart As ChartObject)
+​
+MyChart.chart.Axes(xlValue).HasMajorGridlines = True
+With MyChart.chart.Axes(xlValue).MajorGridlines.Border
+            .ColorIndex = 15
+            .Weight = xlHairline
+            .LineStyle = xlDot
+End With
+​
+End Sub
+​
+Sub Chart_SeriesPoint(MyChart As ChartObject, S1)
+​
+Dim ms As SeriesCollection
+MyChart.Activate
+ActiveChart.SeriesCollection(1).Points(S1).Select
+With Selection.Format.Fill
+        .Visible = msoTrue
+        .ForeColor.ObjectThemeColor = msoThemeColorAccent2
+        .ForeColor.TintAndShade = 0
+'        .ForeColor.Brightness = 0   '透明度设置 0.400000006=40%
+        .Transparency = 0
+        .Solid
+End With
+End Sub
+​
+Sub Chart_Transmit(ChartName As String, Gsht As Worksheet)
+​
+Dim C As ChartObject
+Set C = Gsht.ChartObjects(ChartName)
+​
+With Gsht.Shapes(ChartName)
+      .Fill.ForeColor.RGB = RGB(63, 74, 92)
+'            .TextFrame2.TextRange.Font.Fill.ForeColor.RGB = RGB(255, 255, 255)
+'            .Line.ForeColor.RGB = RGB(255, 0, 0)
+'            .Line.ForeColor.ObjectThemeColor = msoThemeColorBackground1
+End With
+With C.chart.ChartArea
+      .Font.ColorIndex = 2
+      .Border.ColorIndex = 2
+End With
+C.CopyPicture Appearance:=xlPrinter, Format:=xlPicture
+'        C.Chart.Export C.Name & ".JPG"  '导出到文件路径文件夹
+End Sub
+​
+Sub ChartToPicture(ChartName As String, Gsht As Worksheet, Grng As Range)
+Dim C As ChartObject
+Gsht.Select
+Set C = Gsht.ChartObjects(ChartName)
+C.Copy
+Grng.Select
+Gsht.PasteSpecial Format:="图片(JPEG)"
+Call ShapeCheck("P" & ChartName, Gsht)
+Selection.Name = "P" & ChartName
+C.Delete
+End Sub
+​
+Sub ChartCheck(ChartName As String, Gsht As Worksheet)
+​
+Dim R1, zstr
+Dim C As ChartObject
+​
+R1 = Gsht.ChartObjects.Count
+​
+If R1 > 0 Then
+        For Each C In Gsht.ChartObjects
+            zstr = C.Name
+            If zstr = ChartName Then C.Delete
+        Next
+End If
+​
+End Sub
+​
+​
+Sub ShapeCheck(ShapeName As String, Gsht As Worksheet)
+​
+Dim R1, zstr
+Dim s As Shape
+R1 = Gsht.Shapes.Count
+​
+If R1 > 0 Then
+        For Each s In Gsht.Shapes
+            zstr = s.Name
+            If zstr = ShapeName Then s.Delete
+        Next
+End If
+End Sub
+​
+​
+​
+'Sub Chart_XY_Axes()
+​
+'第六部分：设置X\Y轴
+'myChart.Chart.Axes(xlCategory, xlPrimary).HasTitle = True   'XlCategory是X轴
+'mychart.Chart.Axes(xlCategory, xlPrimary).AxisTitle.Text = "X轴标题"
+'With myChart.Chart.Axes(xlCategory, xlPrimary)
+'            .CrossesAt = 0
+'            .TickLabelSpacing = 1
+'            .TickMarkSpacing = 1
+'            .AxisBetweenCategories = True
+'            .ReversePlotOrder = False
+'End With
+'myChart.Chart.Axes(xlValue, xlPrimary).HasTitle = True      'xlValue是Y轴
+'myChart.Chart.Axes(xlValue, xlPrimary).AxisTitle.Text = "项目数"    '
+'myChart.Chart.SetElement (msoElementPrimaryValueAxisTitleHorizontal)
+'With myChart.Chart.Axes(xlValue, xlPrimary)
+'            .MinimumScale = 0   '最小值
+'            .MaximumScale = 10     '最大值
+'            .MajorUnit = 2    '主要间距
+'            .MinorUnit = xlAutomatic    '次要间距
+'            .CrossesAt = 0      '坐标轴的交叉点
+'            .ReversePlotOrder = False
+'            .ScaleType = xlLinear
+'End With
+​
+​
+'第八部分：调整对比point的颜色
+'Dim ms As SeriesCollection
+'Set ms = myChart.Chart.SeriesCollection(1).points(1)
+'End Sub
