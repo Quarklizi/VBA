@@ -1,0 +1,508 @@
+
+' 遍历所有已打开的word文档
+```vb
+For Each docOpened In Documents
+   ……
+Next docOpened
+```
+
+
+' Word 将目录下所有文档转换为txt，并删除原文档
+```vb
+Sub 目录下doc转txt()
+'目录下所有word文档转为txt，并删除word文档
+'保存在原目录
+    '遍历所有文件夹，把带路径的文件名存入字典
+    On Error Resume Next
+    Dim Path As String, t 'Path为路径,t用于计算程序执行花费的时间
+    Set objshell = CreateObject("Shell.Application")
+    Set objfolder = objshell.BrowseForFolder(0, "选择文件夹", 0, 0)
+    If Not objfolder Is Nothing Then Path = objfolder.self.Path & "\"
+    Set objfolder = Nothing
+    Set objshell = Nothing
+    '创建字典用于存储路径和文件名
+    Dim DicPath, DicFile, i As Integer, Ke, ContentName As String, FileName As String, MsgTxt
+    Set DicPath = CreateObject("Scripting.Dictionary")
+    Set DicFile = CreateObject("Scripting.Dictionary")
+    DicPath.Add Path, ""
+    i = 0
+    '存所有路径
+    Do While i < DicPath.count
+        Ke = DicPath.keys
+        ContentName = Dir(Ke(i), vbDirectory)
+        Do While ContentName <> ""
+            '若有子文件夹，则添加
+            '跳过当前的目录及上层目录
+            If ContentName <> "." And ContentName <> ".." Then
+                If GetAttr(Ke(i) & ContentName) = vbDirectory Then
+                    DicPath.Add (Ke(i) & ContentName & "\"), ""
+                End If
+            End If
+                ContentName = Dir
+        Loop
+        i = i + 1
+    Loop
+    '存所有doc文件名
+    For Each Ke In DicPath.keys
+        FileName = Dir(Ke & "*.doc")
+        Do While FileName <> ""
+            DicFile.Add (Ke & FileName), ""
+            FileName = Dir
+        Loop
+    Next Ke
+    '打开文件
+    Application.DisplayAlerts = wdAlertsNone
+    Dim myDoc
+    For Each Ke In DicFile.keys
+        Set myDoc = Documents.Open(Ke)
+        '原路径另存为TXT
+        ActiveDocument.SaveAs2 FileName:=myDoc.Path & "\" & Left(myDoc.Name, InStrRev(myDoc.Name, ".") - 1) & ".txt", FileFormat:=wdFormatText
+        '处理完成后关闭并删除原word文档
+        ActiveDocument.Close
+        Kill Ke
+    Next Ke
+    MsgBox "Done！"
+End Sub
+```
+
+
+
+' 获取网页源代码
+```vb
+Dim httpRequest As Object
+    Set httpRequest = CreateObject("MSXML2.XMLHTTP.3.0")
+    httpRequest.Open "GET", "http://develop.100ppi.com/tmp/autoproduct/ccq2/ci/cha_num.php?pid=" & ItemID & "&sdate=" & sDate & "&edate=" & eDate, False
+    httpRequest.Send
+    txtTemp = httpRequest.responseText
+    或txtTemp = StrConv(httpRequest.responsebody, vbUnicode)
+```
+
+
+
+
+` 汉字编码成URL用的字符串
+```vb
+Public Function Escape(ByVal strText As String) As String
+    Set JS = CreateObject("msscriptcontrol.scriptcontrol")
+    JS.Language = "JavaScript"
+    Escape = JS.eval_r("encodeURI('" & Replace(strText, "'", "\'") & "');")
+End Function
+```
+
+
+
+
+
+' Excel合并相同文件名的单元格，不同文件名的行填充不同的背景色
+```vb
+Dim i As Integer, j As Integer, k As Integer 'i用于遍历，j用于计数须合并的行数,k用于填充颜色
+i = 1
+k = 0
+With wbTmp
+    Do While .Cells(i + 1, 1) <> ""
+        j = 1
+        Do While .Cells(i, 1) = .Cells(i + j, 1)
+           j = j + 1
+        Loop
+        If j > 1 Then
+            .Range(.Cells(i, 1), .Cells(i + j - 1, 1)).Merge
+        End If
+        If (k Mod 2 = 1) Then
+            .Cells(i, 1).Resize(j, 5).Interior.Color = 5296274
+        Else: .Cells(i, 1).Resize(j, 5).Interior.Color = 49407
+        End If
+        k = k + 1
+        i = i + j
+    Loop
+End With
+```
+
+
+
+' 若同目录下不存在某文件夹，则创建
+```vb
+Dim sr
+sr = Dir(ThisWorkbook.Path & "\上海办待导入txt", vbDirectory)
+If sr = "" Then
+    MkDir ThisWorkbook.Path & "\上海办待导入txt"
+End If
+```
+
+
+
+' Word替换昨日今日去年之类的字眼
+```vb
+Sub 替换昨今去()
+Dim Yesterday_Day As Integer, Yesterday As String, Yesterday_Month As Integer, Yesterday_Year As Integer
+Dim Today_Day As Integer, Today_Month As Integer, Today_Year As Integer
+Yesterday = DateAdd("d", -1, Date)
+Yesterday_Day = Day(Yesterday)
+Yesterday_Month = Month(Yesterday)
+Yesterday_Year = Year(Yesterday)
+Today_Day = Day(Date)
+Today_Month = Month(Date)
+Today_Year = Year(Date)
+
+
+    '选择性粘贴
+    Selection.PasteAndFormat (wdPasteDefault)
+
+    Selection.Find.ClearFormatting
+    Selection.Find.Replacement.ClearFormatting
+
+
+    '取消所有超链接
+    Dim cc As Field
+    For Each cc In ActiveDocument.Fields
+    If cc.Type = wdFieldHyperlink Then
+    cc.Unlink
+    End If
+    Next
+    Set cc = Nothing
+
+
+    '替换昨天、昨日
+    With Selection.Find
+        .Text = "昨[天日]{1}"
+        .Replacement.Text = Yesterday_Month & "月" & Yesterday_Day & "日"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '替换今天、今日
+    With Selection.Find
+        .Text = "今[天日]{1}"
+        .Replacement.Text = Today_Month & "月" & Today_Day & "日"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '替换今年
+    With Selection.Find
+        .Text = "今年"
+        .Replacement.Text = Today_Year & "年"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '替换去年
+    With Selection.Find
+        .Text = "去年"
+        .Replacement.Text = Today_Year - 1 & "年"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '删象屿期货的段前符号
+    With Selection.Find
+        .Text = ChrW(61548)
+        .Replacement.Text = ""
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = True
+        .MatchWildcards = False
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '手动换行符替换成回车符
+    With Selection.Find
+        .Text = "^l"
+        .Replacement.Text = "^p"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = True
+        .MatchWildcards = False
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '段与段顶多只隔一行，将任意个回车符号替换成二个
+    With Selection.Find
+        .Text = "(^13)@"
+        .Replacement.Text = "^p^p"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '全选+剪切
+    Selection.WholeStory
+    Selection.Cut
+End Sub
+```
+
+
+
+' 提取word文档里的图片
+```vb
+Sub 存成html()
+Application.ScreenUpdating = False
+
+
+    Dim FileName As String
+    FileName = InputBox("请输入文件名")
+    Selection.Copy
+    Documents.Add DocumentType:=wdNewBlankDocument
+    Selection.PasteAndFormat (wdPasteDefault)
+    '若无目录则创建
+    If Dir("D:\backup\140591\桌面\报告temp\", vbDirectory) = "" Then MkDir "D:\backup\140591\桌面\报告temp\"
+    ActiveDocument.SaveAs FileName:="D:\backup\140591\桌面\报告temp\" & FileName, FileFormat:=wdFormatHTML, _
+        LockComments:=False, Password:="", AddToRecentFiles:=True, WritePassword _
+        :="", ReadOnlyRecommended:=False, EmbedTrueTypeFonts:=False, _
+        SaveNativePictureFormat:=False, SaveFormsData:=False, SaveAsAOCELetter:= _
+        False
+    ActiveWindow.View.Type = wdWebView
+
+    ActiveDocument.Close False
+Application.ScreenUpdating = True
+MsgBox "已完成！"
+End Sub
+```
+
+
+
+' Word 删除新闻中的多余代码和文字
+```vb
+Sub 新闻排版()
+'
+'
+    '选择性粘贴
+    Selection.PasteAndFormat (wdPasteDefault)
+
+    Selection.Find.ClearFormatting
+    Selection.Find.Replacement.ClearFormatting
+
+    '删图片
+    Dim oInlineShape As InlineShape
+    For Each oInlineShape In ActiveDocument.InlineShapes
+        oInlineShape.Delete
+    Next
+
+
+    '取消所有超链接
+    Dim cc As Field
+    For Each cc In ActiveDocument.Fields
+    If cc.Type = wdFieldHyperlink Then
+    cc.Unlink
+    End If
+    Next
+    Set cc = Nothing
+
+
+    '删(微博)[微博]
+    With Selection.Find
+        .Text = "[\[\（\(]微博[\）\]\)]"
+        .Replacement.Text = ""
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '删(博客,微博)
+    With Selection.Find
+        .Text = "(博客,微博)"
+        .Replacement.Text = "^p^p"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = True
+        .MatchWildcards = False
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '删象屿期货的段前符号
+    With Selection.Find
+        .Text = ChrW(61548)
+        .Replacement.Text = ""
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = True
+        .MatchWildcards = False
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '删小标题后的/
+    With Selection.Find
+        .Text = "/^p"
+        .Replacement.Text = "^p"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = True
+        .MatchWildcards = False
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '删股票代码
+    With Selection.Find
+        .Text = "\([\-0-9.]{1,}[,^s]{1,}[\-0-9.]{1,}[,^s]{1,}[\-0-9.%]{1,}\)"
+        .Replacement.Text = ""
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '删股票涨跌值
+    With Selection.Find
+        .Text = "\[[\-0-9.%]{1,}\]"
+        .Replacement.Text = ""
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '删[2.98% 资金 研报]
+    With Selection.Find
+        .Text = "\[[\-0-9.%]{1,}^s资金^s研报\]"
+        .Replacement.Text = ""
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '删(600648,股吧)
+    With Selection.Find
+        .Text = "\([0-9]{6},[股吧基金]{2,3}\)"
+        .Replacement.Text = ""
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '手动换行符替换成回车符
+    With Selection.Find
+        .Text = "^l"
+        .Replacement.Text = "^p"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = True
+        .MatchWildcards = False
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '段与段顶多只隔一行，将任意个回车符号替换成二个
+    With Selection.Find
+        .Text = "(^13)@"
+        .Replacement.Text = "^p^p"
+        .Forward = True
+        .Wrap = wdFindContinue
+        .MatchByte = False
+        .MatchWildcards = True
+    End With
+    Selection.Find.Execute Replace:=wdReplaceAll
+
+    '全选+剪切
+    Selection.WholeStory
+    Selection.Cut
+End Sub
+```
+
+
+
+' Excel双击则复制单元格内容到剪切板
+```vb
+Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
+    With CreateObject("new:{1C3B4210-F441-11CE-B9EA-00AA006B1A69}")
+        .SetText Target
+        .PutInClipboard
+    End With
+End Sub
+```
+
+
+
+' 用对话框打开Excel文件
+```vb
+iFileName = Application.GetOpenFilename("Excel文件 (*.xlsx;*.xls), *.xlsx;*.xls")
+```
+
+
+
+` Excel按指定列升序排列
+```vb
+With wbf.Sort
+    .SortFields.Clear
+    .SortFields.Add Key:=Range("B1"), SortOn:=xlSortOnValues, Order:=xlAscending 'descending，递减。Ascending，递增
+    .SetRange Range("A1").CurrentRegion '排序区域
+    .Header = xlGuess '第一行包含标题
+    .MatchCase = False '不区分大小写
+    .Orientation = xlTopToBottom
+    .SortMethod = xlPinYin
+    .Apply
+End With
+```
+
+
+
+
+' Excel汇总同目录文件
+```vb
+Sub HzWb()
+    Dim bt As Range, r As Long, c As Long
+    r = 1    '1 是表头的行数
+    c = 8    '8 是表头的列数
+    Range(Cells(r + 1, "A"), Cells(65536, c)).ClearContents    ' 清除汇总表中原表数据
+    Application.ScreenUpdating = False
+    Dim FileName As String, wb As Workbook, Erow As Long, fn As String, arr As Variant
+    FileName = Dir(ThisWorkbook.Path & "\*.xls") '返回一个Excel文件，可匹配到.xlsx
+    Do While FileName <> ""
+        If FileName <> ThisWorkbook.Name Then    ' 判断文件是否是本工作簿
+            Erow = Range("A1").CurrentRegion.Rows.Count + 1    ' 取得汇总表中第一条空行行号
+            fn = ThisWorkbook.Path & "\" & FileName
+            Set wb = GetObject(fn)    ' 将fn 代表的工作簿对象赋给变量
+            Set sht = wb.Worksheets(1)    ' 汇总的是第1 张工作表
+            ' 将数据表中的记录保存在arr 数组里
+            arr = sht.Range(sht.Cells(r + 1, "A"), sht.Cells(65536, "B").End(xlUp).Offset(0, 8))
+            ' 将数组arr 中的数据写入工作表
+            Cells(Erow, "A").Resize(UBound(arr, 1), UBound(arr, 2)) = arr
+            wb.Close False
+        End If
+        FileName = Dir    ' 用Dir 函数取得其他文件名，并赋给变量
+    Loop
+    Application.ScreenUpdating = True
+End Sub
+```
+
+
+
+
+' Excel 将指定数据另存为txt文件
+```vb
+'新建一张表用于存放待保存的数据
+Set wbTmp = ThisWorkbook.Worksheets.Add(after:=wb)
+
+'复制待保存的数据
+wb.Cells(2 + iJx, "C").Resize(iSc, 1).Copy wbTmp.Cells(1, 1)
+wb.Cells(2 + iJx, "R").Resize(iSc, 1).Copy wbTmp.Cells(1, 2)
+
+'将新表复制出来成为一个单独的文件并另存为txt
+wbTmp.Copy
+ActiveWorkbook.SaveAs FileName:=ThisWorkbook.Path & "\自定义文件名.txt", FileFormat:=xlText, CreateBackup:=False
+
+'关闭上一步出现的新Workbook
+ActiveWorkbook.Close False
+
+'删除原文件中的临时表
+wbTmp.Delete
+```
